@@ -26,66 +26,67 @@ IMG_SIZE = 48
 # IMAGE PREPROCCESSING
 
 
-def preprocess_img(img):
-    # Histogram normalization in y
-    hsv = color.rgb2hsv(img)
-    hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
-    img = color.hsv2rgb(hsv)
+# def preprocess_img(img):
+#     # Histogram normalization in y
+#     hsv = color.rgb2hsv(img)
+#     hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
+#     img = color.hsv2rgb(hsv)
 
-    # central scrop
-    min_side = min(img.shape[:-1])
-    centre = img.shape[0]//2, img.shape[1]//2
-    img = img[centre[0]-min_side//2:centre[0]+min_side//2,
-              centre[1]-min_side//2:centre[1]+min_side//2,
-              :]
+#     # central scrop
+#     min_side = min(img.shape[:-1])
+#     centre = img.shape[0]//2, img.shape[1]//2
+#     img = img[centre[0]-min_side//2:centre[0]+min_side//2,
+#               centre[1]-min_side//2:centre[1]+min_side//2,
+#               :]
 
-    # rescale to standard size
-    img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
+#     # rescale to standard size
+#     img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
 
-    # roll color axis to axis 0
-    img = np.rollaxis(img, -1)
+#     # roll color axis to axis 0
+#     img = np.rollaxis(img, -1)
 
-    return img
-
-
-def get_class(img_path):
-    return int(img_path.split('/')[-2])
+#     return img
 
 
-# Preprocess all training images into a numpy array
-try:
-    with h5py.File('X.h5') as hf:
-        X, Y = hf['imgs'][:], hf['labels'][:]
-    print("Loaded images from X.h5")
+# def get_class(img_path):
+#     return int(img_path.split('/')[-2])
 
-except (IOError, OSError, KeyError):
-    print("Error in reading X.h5. Processing all images...")
-    root_dir = 'data/Final_Training/Images/'
-    imgs = []
-    labels = []
 
-    all_img_paths = glob.glob(os.path.join(root_dir, '*/*.ppm'))
-    np.random.shuffle(all_img_paths)
-    for img_path in all_img_paths:
-        try:
-            img = preprocess_img(io.imread(img_path))
-            label = get_class(img_path)
-            imgs.append(img)
-            labels.append(label)
+# # Preprocess all training images into a numpy array
+# try:
+#     with h5py.File('X.h5') as hf:
+#         X, Y = hf['imgs'][:], hf['labels'][:]
+#     print("Loaded images from X.h5")
 
-            if len(imgs) % 1000 == 0:
-                print("Processed {}/{}".format(len(imgs), len(all_img_paths)))
-        except (IOError, OSError):
-            print('missed', img_path)
-            pass
+# except (IOError, OSError, KeyError):
+#     print("Error in reading X.h5. Processing all images...")
+#     root_dir = '../../../DS-2.2/DS-2.2-DL-exercise/Datasets/gstrb_data/Final_Training/Images/'
+    
+#     imgs = []
+#     labels = []
 
-    X = np.array(imgs, dtype='float32')
-    # Return a 2-D array with ones on the diagonal and zeros elsewhere
-    Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
+#     all_img_paths = glob.glob(os.path.join(root_dir, '*/*.ppm'))
+#     np.random.shuffle(all_img_paths)
+#     for img_path in all_img_paths:
+#         try:
+#             img = preprocess_img(io.imread(img_path))
+#             label = get_class(img_path)
+#             imgs.append(img)
+#             labels.append(label)
 
-    with h5py.File('X.h5', 'w') as hf:
-        hf.create_dataset('imgs', data=X)
-        hf.create_dataset('labels', data=Y)
+#             if len(imgs) % 1000 == 0:
+#                 print("Processed {}/{}".format(len(imgs), len(all_img_paths)))
+#         except (IOError, OSError):
+#             print('missed', img_path)
+#             pass
+
+#     X = np.array(imgs, dtype='float32')
+#     # Return a 2-D array with ones on the diagonal and zeros elsewhere
+#     Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
+
+#     with h5py.File('X.h5', 'w') as hf:
+#         hf.create_dataset('imgs', data=X)
+#         hf.create_dataset('labels', data=Y)
 
 
 # create model
@@ -143,3 +144,18 @@ model.compile(loss='categorical_crossentropy',
 
 def lr_schedule(epoch):
     return lr*(0.1**int(epoch/10))
+
+
+# fit the model
+
+
+# batch_size = 32
+# epochs = 10
+
+# model.fit(X, Y,
+#           batch_size=batch_size,
+#           epochs=epochs,
+#           validation_split=0.2,
+#           shuffle=True
+#         #   validation_data=(x_test, y_test)
+#         )

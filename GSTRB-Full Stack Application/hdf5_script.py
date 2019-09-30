@@ -5,7 +5,8 @@ import pandas as pd
 import os
 import glob
 import h5py
-
+# root directory for traing and test data
+root_dir = '../../../DS-2.2/DS-2.2-DL-exercise/Datasets/gstrb_data/'
 
 NUM_CLASSES = 43
 IMG_SIZE = 48
@@ -39,11 +40,12 @@ def get_class(img_path):
 
 if __name__ == '__main__':
 
-    root_dir = '../DS-2.2/DS-2.2-DL-exercise/Datasets/gstrb_data/Final_Training/Images/'
+    # TRAINING DATASET
+    final_training_data = root_dir + 'Final_Training/Images/'
     imgs = []
     labels = []
 
-    all_img_paths = glob.glob(os.path.join(root_dir, '*/*.ppm'))
+    all_img_paths = glob.glob(os.path.join(final_training_data, '*/*.ppm'))
     np.random.shuffle(all_img_paths)
     for img_path in all_img_paths:
         try:
@@ -60,24 +62,30 @@ if __name__ == '__main__':
 
     X = np.array(imgs, dtype='float32')
     Y = np.array(labels, dtype='uint8')
-
+    
+    # creates h5 file with input variables X
     with h5py.File('X.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y+1)
 
+
+    # creating test data set
     test = pd.read_csv('GT-final_test.csv', sep=';')
 
     X_test = []
     y_test = []
     i = 0
     for file_name, class_id in zip(list(test['Filename']), list(test['ClassId'])):
-        img_path = os.path.join('data/Final_Test/Images/', file_name)
+        final_test_folder = root_dir + 'Final_Test/Images/'
+        # img_path = os.path.join('data/Final_Test/Images/', file_name)
+        img_path = os.path.join(final_test_folder, file_name)
         X_test.append(preprocess_img(io.imread(img_path)))
         y_test.append(class_id+1)
 
     X_test = np.array(X_test, dtype='float32')
     y_test = np.array(y_test, dtype='uint8')
 
+    # X test data set
     with h5py.File('X_test.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y)
