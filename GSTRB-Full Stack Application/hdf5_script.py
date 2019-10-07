@@ -38,7 +38,7 @@ def get_class(img_path):
     return int(img_path.split('/')[-2])
 
 
-if __name__ == '__main__':
+def X_and_y():
 
     # TRAINING DATASET
     final_training_data = root_dir + 'Final_Training/Images/'
@@ -62,12 +62,11 @@ if __name__ == '__main__':
 
     X = np.array(imgs, dtype='float32')
     Y = np.array(labels, dtype='uint8')
-    
+
     # creates h5 file with input variables X
     with h5py.File('X.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y+1)
-
 
     # creating test data set
     test = pd.read_csv('GT-final_test.csv', sep=';')
@@ -89,3 +88,9 @@ if __name__ == '__main__':
     with h5py.File('X_test.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y)
+
+    return X, Y
+
+if __name__ == '__main__':
+    X_and_y()
+    

@@ -20,77 +20,27 @@ from keras import backend as K
 K.set_image_data_format('channels_first')
 # %matplotlib inline
 
+# CUSTOM
+from hdf5_script import X_and_y
+
+
 NUM_CLASSES = 43
 IMG_SIZE = 48
-
-# IMAGE PREPROCCESSING
-
-
-# def preprocess_img(img):
-#     # Histogram normalization in y
-#     hsv = color.rgb2hsv(img)
-#     hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
-#     img = color.hsv2rgb(hsv)
-
-#     # central scrop
-#     min_side = min(img.shape[:-1])
-#     centre = img.shape[0]//2, img.shape[1]//2
-#     img = img[centre[0]-min_side//2:centre[0]+min_side//2,
-#               centre[1]-min_side//2:centre[1]+min_side//2,
-#               :]
-
-#     # rescale to standard size
-#     img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
-
-#     # roll color axis to axis 0
-#     img = np.rollaxis(img, -1)
-
-#     return img
+# to run the functions only once
 
 
-# def get_class(img_path):
-#     return int(img_path.split('/')[-2])
-
-
-# # Preprocess all training images into a numpy array
-# try:
-#     with h5py.File('X.h5') as hf:
-#         X, Y = hf['imgs'][:], hf['labels'][:]
-#     print("Loaded images from X.h5")
-
-# except (IOError, OSError, KeyError):
-#     print("Error in reading X.h5. Processing all images...")
-#     root_dir = '../../../DS-2.2/DS-2.2-DL-exercise/Datasets/gstrb_data/Final_Training/Images/'
-    
-#     imgs = []
-#     labels = []
-
-#     all_img_paths = glob.glob(os.path.join(root_dir, '*/*.ppm'))
-#     np.random.shuffle(all_img_paths)
-#     for img_path in all_img_paths:
-#         try:
-#             img = preprocess_img(io.imread(img_path))
-#             label = get_class(img_path)
-#             imgs.append(img)
-#             labels.append(label)
-
-#             if len(imgs) % 1000 == 0:
-#                 print("Processed {}/{}".format(len(imgs), len(all_img_paths)))
-#         except (IOError, OSError):
-#             print('missed', img_path)
-#             pass
-
-#     X = np.array(imgs, dtype='float32')
-#     # Return a 2-D array with ones on the diagonal and zeros elsewhere
-#     Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
-
-#     with h5py.File('X.h5', 'w') as hf:
-#         hf.create_dataset('imgs', data=X)
-#         hf.create_dataset('labels', data=Y)
+def run_once(f):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+    wrapper.has_run = False
+    return wrapper
 
 
 # create model
 # model compatible today's keras
+@run_once
 def cnn_simple_model():
     """
     """
@@ -127,35 +77,58 @@ def cnn_simple_model():
     return model
 
 
+# calling X and y and call this only once
+def X_and_y_train():
+    if not os.path.exists('./X.h5'):
+        # get the and y train
+        X_train, y_train = X_and_y_train()
+    else:
+        with h5py.File('./X.h5') as f:
+            X_train = np.array(f['imgs'])
+            y_train = np.eye(NUM_CLASSES, dtype='uint8')[labels]
+            # print(X_train)
+            # print(y_train)
+    
+    return X_train, y_train
+
+X_train, y_train = X_and_y_train()
+
+print(f"X shape: {X_train.shape}")
+print(f"Y shape: {y_train.shape}")
+
 # compile the model
+# model = cnn_simple_model()
 
-model = cnn_simple_model()
-
-
-# let's train the model using SGD + momentum (how original).
-lr = 0.01
-sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
-
-
-model.compile(loss='categorical_crossentropy',
-              optimizer=sgd,
-              metrics=['accuracy'])
+# # let's train the model using SGD + momentum.
+# # source on learning rate: https://machinelearningmastery.com/using-learning-rate-schedules-deep-learning-models-python-keras/
+# lr = 0.01
+# sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
 
 
-def lr_schedule(epoch):
-    return lr*(0.1**int(epoch/10))
+# model.compile(loss='categorical_crossentropy',
+#               optimizer=sgd,
+#               metrics=['accuracy'])
+
+# print("Compile the model")
 
 
-# fit the model
+# @run_once
+# def lr_schedule(epoch):
+#     return lr*(0.1**int(epoch/10))
 
 
+# # fit the model
 # batch_size = 32
-# epochs = 10
+# epochs = 1
+# callbacks_list = [LearningRateScheduler(lr_schedule),
+#                 ModelCheckpoint('simple_model_gtsrb.h5', save_best_only=True)]
 
-# model.fit(X, Y,
+# model.fit(X_train, y_train,
 #           batch_size=batch_size,
 #           epochs=epochs,
 #           validation_split=0.2,
-#           shuffle=True
-#         #   validation_data=(x_test, y_test)
-#         )
+#           shuffle=True,
+#           verbose=1,
+#           callbacks=callbacks_list
+# )
+     
