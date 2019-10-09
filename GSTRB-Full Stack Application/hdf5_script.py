@@ -38,6 +38,31 @@ def get_class(img_path):
     return int(img_path.split('/')[-2])
 
 
+def get_class_name(class_id):
+    """
+    Reads from csv file and returns the name of the class for the predicted
+    traffic sign
+    Args:
+        class_id(int): predicted class id of the sign
+    Returns:
+        class_name(str): class name associated with class id
+    """
+
+    # create a data frame
+    sign_name_df = pd.read_csv('sign_names.csv')
+
+    sign_name_dict = {}
+    for key, value in sign_name_df.values:
+        sign_name_dict[key] = value
+
+    # for key, _ in sign_name_dict:
+    #     if key == class_id:
+    #         return sign_name_dict[key]
+    print("class id: ", class_id)
+    return sign_name_dict[class_id]
+
+
+
 def X_and_y():
 
     # TRAINING DATASET
