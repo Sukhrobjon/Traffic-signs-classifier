@@ -80,16 +80,43 @@ def cnn_simple_model():
 # calling X and y and call this only once
 def X_and_y_train():
     if not os.path.exists('./X.h5'):
-        # get the and y train
-        X_train, y_train = X_and_y_train()
+        # print("Error in reading X.h5. Processing all images...")
+        # final_training = root_dir + '/Final_Training/Images/'
+        # imgs = []
+        # labels = []
+
+        # all_img_paths = glob.glob(os.path.join(root_dir, '*/*.ppm'))
+        # np.random.shuffle(all_img_paths)
+        # for img_path in all_img_paths:
+        #     try:
+        #         img = preprocess_img(io.imread(img_path))
+        #         label = get_class(img_path)
+        #         imgs.append(img)
+        #         labels.append(label)
+
+        #         if len(imgs)%1000 == 0: print("Processed {}/{}".format(len(imgs), len(all_img_paths)))
+        #     except (IOError, OSError):
+        #         print('missed', img_path)
+        #         pass
+
+        # X = np.array(imgs, dtype='float32')
+        # # Return a 2-D array with ones on the diagonal and zeros elsewhere
+        # Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
+
+        # with h5py.File('X.h5', 'w') as hf:
+        #     hf.create_dataset('imgs', data=X)
+        #     hf.create_dataset('labels', data=Y)
+
+        X_train, y_train = X_and_y()
+
     else:
-        with h5py.File('./X.h5') as f:
-            X_train = np.array(f['imgs'])
-            y_train = np.eye(NUM_CLASSES, dtype='uint8')[labels]
+        with h5py.File('./X.h5') as hf:
+            X_train = hf['imgs'][:]
+            y_train = hf['labels'][:]
             # print(X_train)
             # print(y_train)
-    
     return X_train, y_train
+
 
 X_train, y_train = X_and_y_train()
 
@@ -97,38 +124,36 @@ print(f"X shape: {X_train.shape}")
 print(f"Y shape: {y_train.shape}")
 
 # compile the model
-# model = cnn_simple_model()
+model = cnn_simple_model()
 
-# # let's train the model using SGD + momentum.
-# # source on learning rate: https://machinelearningmastery.com/using-learning-rate-schedules-deep-learning-models-python-keras/
-# lr = 0.01
-# sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
+# let's train the model using SGD + momentum.
+# source on learning rate: https://machinelearningmastery.com/using-learning-rate-schedules-deep-learning-models-python-keras/
+lr = 0.01
+sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
 
 
-# model.compile(loss='categorical_crossentropy',
-#               optimizer=sgd,
-#               metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',
+              optimizer=sgd,
+              metrics=['accuracy'])
 
-# print("Compile the model")
+print("Compile the model")
 
 
 # @run_once
-# def lr_schedule(epoch):
-#     return lr*(0.1**int(epoch/10))
+def lr_schedule(epoch):
+    return lr*(0.1**int(epoch/10))
 
 
-# # fit the model
-# batch_size = 32
-# epochs = 1
-# callbacks_list = [LearningRateScheduler(lr_schedule),
-#                 ModelCheckpoint('simple_model_gtsrb.h5', save_best_only=True)]
+# fit the model
+batch_size = 32
+epochs = 5
+callbacks_list = [LearningRateScheduler(lr_schedule),
+                ModelCheckpoint('simple_model_gtsrb.h5', save_best_only=True)]
 
-# model.fit(X_train, y_train,
-#           batch_size=batch_size,
-#           epochs=epochs,
-#           validation_split=0.2,
-#           shuffle=True,
-#           verbose=1,
-#           callbacks=callbacks_list
-# )
-     
+model.fit(X_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          validation_split=0.2,
+          shuffle=True,
+          callbacks=callbacks_list
+)

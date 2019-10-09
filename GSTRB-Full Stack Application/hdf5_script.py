@@ -61,19 +61,22 @@ def X_and_y():
             pass
 
     X = np.array(imgs, dtype='float32')
-    Y = np.array(labels, dtype='uint8')
+    # Y = np.array(labels, dtype='uint8')
+    Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
 
     # creates h5 file with input variables X
     with h5py.File('X.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
-        hf.create_dataset('labels', data=Y+1)
+        hf.create_dataset('labels', data=Y)
 
+    # ========================================================================== #
+    
     # creating test data set
     test = pd.read_csv('GT-final_test.csv', sep=';')
 
     X_test = []
     y_test = []
-    i = 0
+    # i = 0
     for file_name, class_id in zip(list(test['Filename']), list(test['ClassId'])):
         final_test_folder = root_dir + 'Final_Test/Images/'
         # img_path = os.path.join('data/Final_Test/Images/', file_name)
@@ -89,7 +92,10 @@ def X_and_y():
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y)
 
+    # return X_test, y_test
+
     return X, Y
+
 
 if __name__ == '__main__':
     X_and_y()
