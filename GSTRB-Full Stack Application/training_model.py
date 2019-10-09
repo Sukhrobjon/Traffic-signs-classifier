@@ -127,5 +127,6 @@ print(f"Y shape: {y_train.shape}")
 #           epochs=epochs,
 #           validation_split=0.2,
 #           shuffle=True,
-#           callbacks=callbacks_list
+#           callbacks=callbacks_list,
 # )
+
