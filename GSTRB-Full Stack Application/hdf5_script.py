@@ -7,6 +7,7 @@ import glob
 import h5py
 # root directory for traing and test data
 root_dir = '../../../DS-2.2/DS-2.2-DL-exercise/Datasets/gstrb_data/'
+# root_dir = # REPLACE WITH ROUTE ON AWS ZIP file
 
 NUM_CLASSES = 43
 IMG_SIZE = 48

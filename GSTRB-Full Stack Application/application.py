@@ -35,27 +35,15 @@ class CNNPrediction(Resource):
     @api.doc(parser=single_parser, description='Upload a traffic sign')
     def post(self):
         args = single_parser.parse_args()
-        image_file = args.file
-        # we are saving the user input
-        image_file.save('img_1.jpg')
-        #  now we are opening the file
-        # img = Image.open('img_1.jpg')
-        # image_red = img.resize((28, 28))
-        # image = img_to_array(image_red)
-
-        # IMAGE PREPROCESSING
-        img = Image.open('img_1.jpg')
+        image_file = args.file    
+        
+        # IMAGE PREPROCESSINg
         # preprocess the image the same way as we trained the data
-        img = preprocess_img(io.imread(img))
+        img = preprocess_img(io.imread(image_file))
         # reshaping to 4d to make it compatible with input shape
         x = img.reshape(1, 3, 48, 48)
-        print(x.shape)
-        
-        # # (1 image, gray scale)
-        # # (how many, size, size, channel(scale, 1 or 3))
-        # x = image.reshape(1, 28, 28, 1)
-        # x = x/255
-
+        # print(x.shape)
+    
 
         # This is not good, because this code implies that the model will be
         # loaded each and every time a new request comes in.
@@ -63,14 +51,15 @@ class CNNPrediction(Resource):
         with graph.as_default():
             out = model.predict(x)
 
-        # # print(out[0])
-        # print(np.argmax(out[0]))
-        # r = np.argmax(out[0])
         class_id = np.argmax(out[0])
         class_name = get_class_name(class_id)
-        return (f"predicted class: {class_name}")
+        # customize the predicted image name(didnt work so far)
+        # predicted_img = class_name.split()
+        # predicted_img = "_".join(predicted_img)
 
-        # return {'prediction': str(r)}
+        image_file = Image.open(image_file)
+        image_file.save('traffic_sign.jpg')
+        return (f"predicted class: {class_name}")
 
 
 if __name__ == '__main__':
